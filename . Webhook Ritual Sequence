@@ -1,0 +1,19 @@
+jobs:
+  conversion-rite:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Video Metrics
+        uses: actions/http-client@v1
+        with:
+          url: ${{ secrets.YOUTUBE_METRICS_ENDPOINT }}
+      - name: Compute Pledge Tier
+        run: python scripts/compute_pledge.py
+      - name: Invoke Payment Webhook
+        uses: actions/http-client@v1
+        with:
+          url: ${{ secrets.PAYMENT_WEBHOOK_URL }}
+          method: POST
+          headers: '{"Content-Type":"application/json"}'
+          body: '{"video_id":"$VID","tier":"$TIER"}'
+      - name: Await Callback Confirmation
+        run: scripts/await_callback.sh
